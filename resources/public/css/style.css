@@ -10,9 +10,9 @@ body {
 }
 
 .vt {
-  border: 1px solid black;
-  border-radius: 0.1em;
-  font-size: 50vw;
+  //border: 1px solid black;
+  //border-radius: 0.1em;
+  font-size: 45vw;
   margin: 0;
   padding: 0;
   text-align: center;
