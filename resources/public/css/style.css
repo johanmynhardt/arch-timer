@@ -1,0 +1,19 @@
+/* some style */
+
+body, html {
+  background-color: black;
+}
+
+body {
+  color: white;
+  font-family: sans-serif;
+}
+
+.vt {
+  border: 1px solid black;
+  border-radius: 0.1em;
+  font-size: 50vw;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
