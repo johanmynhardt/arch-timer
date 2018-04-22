@@ -17,3 +17,15 @@ body {
   padding: 0;
   text-align: center;
 }
+
+#config {
+    width: calc(100vw - 2em);
+    border: 1px solid white;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    /* margin: 0.5em; */
+    background-color: #666;
+    opacity: 0.95;
+    height: 95vh;
+}

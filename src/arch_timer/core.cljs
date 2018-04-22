@@ -10,7 +10,8 @@
                        :readycounter 0
                        :runtime 25
                        :running false
-                       :counter 0}))
+                       :counter 0}
+                      :config true))
 
 (defonce app-state (atom @config))
 
@@ -44,8 +45,15 @@
                 (swap! app-state assoc-in [:timer] nil)))))
 
 (defn reset []
-  ;(stop)
   (reset! app-state (merge @app-state @config {:timer (:timer @app-state)})))
+
+(defn set-config [key value]
+  (swap! config assoc-in [key] value))
+
+(defn configure! []
+  (stop)
+  (set-config :config true)
+  (reset))
 
 (defn get-style [remaining running]
   (cond
@@ -64,21 +72,55 @@
      {:background-color background-color
       :color color})))
 
+(defn beep! []
+  (.. 
+   (js/document.querySelector "audio")
+   play))
+
 (rum/defc root < rum/reactive [app-state]
-  (let [{:keys [counter runtime readytime readycounter running]} (rum/react app-state)
+  (let [{:keys [counter runtime readytime readycounter running config]} (rum/react app-state)
         remaining (- runtime counter)
         readyleft (- readytime readycounter)
         color (get-style remaining running)
-        _ (if (<= remaining 0) (stop))]
+        _ (if (<= remaining 0) (do (beep!) (stop)))]
     [:div
      [:div
       [:button {:on-click start} "start"]
       [:button {:on-click stop} "stop"]
-      [:button {:on-click reset} "reset"]]
+      [:button {:on-click reset} "reset"]
+      [:button {:on-click configure!} "configure"]]
      [:div.vt {:style color}
       [:div {:hidden (not running)} (str remaining)]
       [:div {:hidden running} (str readyleft)]]
-     [:h4 (str (js/Date.))]]
+     [:audio#beep {:controls ""}
+      [:source {:src "audio/beep.ogg"}]]
+     [:h4 (str (js/Date.))]
+     [:div#config {:hidden (not config)}
+      [:dl
+       [:dt [:label "ready time"]]
+       [:dd [:input {:type "number"
+                      :value readytime
+                      :on-change #(set-config
+                                   :readytime
+                                   (->
+                                    (.. % -target -value)
+                                    js/parseInt))}]]
+
+       [:dt [:label "runtime"]]
+       [:dd [:input {:type "number"
+                      :value runtime
+                      :on-change #(set-config
+                                   :runtime
+                                   (->
+                                    (.. % -target -value)
+                                    js/parseInt))}]]]
+
+      
+      [:div]
+      [:button {:on-click (fn [_]
+                            (set-config :config false)
+                            (reset))}
+       "OK"]]]
     ))
 
 (defn mountroot! [el-id]
