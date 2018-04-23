@@ -29,7 +29,22 @@
 
    :else (swap! app-state update-in [:readycounter] inc)))
 
+(defn- audio []
+  (let [audio (js/document.querySelector "audio")]
+    audio))
+
+(defn- init-audio []
+  (set! (.-volume (audio)) 0)
+  (.. (audio) play)
+  (js/setTimeout #(set! (.-volume (audio)) 1) 1000))
+
+
+(defn beep! []
+  (let []
+    (.. (audio) play)))
+
 (defn start []
+  (init-audio)
   (let [timer (:timer @app-state)
         _ (println "timer: " timer)]
     (if-not timer
@@ -72,10 +87,6 @@
      {:background-color background-color
       :color color})))
 
-(defn beep! []
-  (.. 
-   (js/document.querySelector "audio")
-   play))
 
 (rum/defc root < rum/reactive [app-state]
   (let [{:keys [counter runtime readytime readycounter running config]} (rum/react app-state)
@@ -88,11 +99,13 @@
       [:button {:on-click start} "start"]
       [:button {:on-click stop} "stop"]
       [:button {:on-click reset} "reset"]
-      [:button {:on-click configure!} "configure"]]
+      [:button {:on-click configure!} "configure"]
+      [:button {:on-click beep!} "beep!"]]
      [:div.vt {:style color}
       [:div {:hidden (not running)} (str remaining)]
       [:div {:hidden running} (str readyleft)]]
-     [:audio#beep {:controls ""}
+     [:audio#beep {:controls true
+                   :style {:display "none"}}
       [:source {:src "audio/beep.ogg"}]]
      [:h4 (str (js/Date.))]
      [:div#config {:hidden (not config)}
