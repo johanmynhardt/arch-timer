@@ -57,7 +57,7 @@
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 
              ;; Start an nREPL server into the running figwheel process
-             ;; :nrepl-port 7888
+             :nrepl-port 7888
 
              ;; Server Ring Handler (optional)
              ;; if you want to embed a ring handler into the figwheel http-kit
@@ -99,7 +99,7 @@
                    ;; need to add dev source path here to get user.clj loaded
                    :source-paths ["src" "dev"]
                    ;; for CIDER
-                   ;; :plugins [[cider/cider-nrepl "0.12.0"]]
+                   :plugins [[cider/cider-nrepl "0.12.0"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    ;; need to add the compliled assets to the :clean-targets
                    :clean-targets ^{:protect false} ["resources/public/js/compiled"
