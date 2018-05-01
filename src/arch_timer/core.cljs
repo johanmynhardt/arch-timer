@@ -15,36 +15,59 @@
 
 (defonce app-state (atom @config))
 
-(defn on-timer []
-  ;(println (str "app-state: " @app-state))
+(defn- audio
+  "Finds and returns the audio element."
+  []
+  (js/document.querySelector "audio"))
 
-  (cond
-   (= (:readycounter @app-state) (:readytime @app-state))
-   (do
-     (let [{:keys [running]} @app-state]
-       (if-not running
-         (swap! app-state assoc-in [:running] true))
-       (if running
-         (swap! app-state update-in [:counter] inc))))
-
-   :else (swap! app-state update-in [:readycounter] inc)))
-
-(defn- audio []
-  (let [audio (js/document.querySelector "audio")]
-    audio))
-
-(defn- init-audio []
+(defn- init-audio
+  "Preload and plays the audio at mute volume - a requirement for mobile Chrome."
+  []
   (set! (.-volume (audio)) 0)
   (.. (audio) play)
   (js/setTimeout #(set! (.-volume (audio)) 1) 1000))
 
 
-(defn beep! []
-  (let []
-    (.. (audio) play)))
+(defn beep!
+  "Trigger the audio beep."
+  []
+  (.. (audio) play))
 
-(defn start []
-  (init-audio)
+(defn beep-repeat
+  "Repeat the beep the number of requested times.
+  
+  Note that this is called recursively as a JavaScript Timeout is used."
+  [times]
+  (if (> times 0)
+      (do
+        (beep!)
+        (js/setTimeout #(beep-repeat (dec times)) 1000))))
+
+(defn on-timer
+  "Actions to execute when the timer fires."
+  []
+  (cond
+   (= (:readycounter @app-state) (:readytime @app-state))
+   (let [{:keys [running]} @app-state]
+       (if-not running
+         (do
+           (beep-repeat 1)
+           (swap! app-state assoc-in [:running] true)))
+       (if running
+         (swap! app-state update-in [:counter] inc)))
+
+   :else (swap! app-state update-in [:readycounter] inc)))
+
+(defn reset
+  "Reset the app-state to the initial state, ready for the next run."
+  []
+  (reset! app-state (merge @app-state @config {:timer (:timer @app-state)})))
+
+(defn start
+  "Start the timer."
+  []
+  (reset)
+  (beep-repeat 2)
   (let [timer (:timer @app-state)
         _ (println "timer: " timer)]
     (if-not timer
@@ -52,15 +75,16 @@
         (println "Starting timer...")
         (swap! app-state assoc-in [:timer] (js/setInterval on-timer 1000))))))
 
-(defn stop []
+(defn stop
+  "Stop the timer and reset states."
+  []
   (let [timer (:timer @app-state)]
     (if timer (do
                 (println "Stopping timer.")
                 (js/clearInterval timer)
-                (swap! app-state assoc-in [:timer] nil)))))
+                (swap! app-state assoc-in [:timer] nil)
+                (swap! app-state assoc-in [:running] false)))))
 
-(defn reset []
-  (reset! app-state (merge @app-state @config {:timer (:timer @app-state)})))
 
 (defn set-config [key value]
   (swap! config assoc-in [key] value))
@@ -80,7 +104,7 @@
                  {:v 20 :background-color "yellow" :color "black"}
                  {:v 15 :background-color "orange"}
                  {:v 0 :background-color "red"}]
-
+ 
          selected (last (filter #(<= remaining (:v %)) colors))
          {:keys [background-color color]
           :or {background-color "pink" color "white"}} selected]
@@ -93,7 +117,8 @@
         remaining (- runtime counter)
         readyleft (- readytime readycounter)
         color (get-style remaining running)
-        _ (if (<= remaining 0) (do (beep!) (stop)))]
+        _ (if (<= remaining 0) (do (if running (beep-repeat 3)) (stop)))
+        ]
     [:div
      [:div
       [:button {:on-click start} "start"]
@@ -107,26 +132,28 @@
      [:audio#beep {:controls true
                    :style {:display "none"}}
       [:source {:src "audio/beep.ogg"}]]
-     [:h4 (str (js/Date.))]
+     [:h4 (.. (js/Date.) toTimeString)]
+
+     ; Modal Config
      [:div#config {:hidden (not config)}
       [:dl
        [:dt [:label "ready time"]]
        [:dd [:input {:type "number"
-                      :value readytime
-                      :on-change #(set-config
-                                   :readytime
-                                   (->
-                                    (.. % -target -value)
-                                    js/parseInt))}]]
+                     :value readytime
+                     :on-change #(set-config
+                                  :readytime
+                                  (->
+                                   (.. % -target -value)
+                                   js/parseInt))}]]
 
        [:dt [:label "runtime"]]
        [:dd [:input {:type "number"
-                      :value runtime
-                      :on-change #(set-config
-                                   :runtime
-                                   (->
-                                    (.. % -target -value)
-                                    js/parseInt))}]]]
+                     :value runtime
+                     :on-change #(set-config
+                                  :runtime
+                                  (->
+                                   (.. % -target -value)
+                                   js/parseInt))}]]]
 
       
       [:div]
