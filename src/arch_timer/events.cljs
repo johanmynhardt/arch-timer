@@ -11,8 +11,12 @@
       (if-not running
         (do
           (sound/beep-repeat 1)
-          (swap! c/app-state assoc-in [:running] true)))
+          (c/set-app :running true)))
       (if running
         (swap! c/app-state update-in [:counter] inc)))
 
     :else (swap! c/app-state update-in [:readycounter] inc)))
+
+(defn on-heartbeat
+  []
+  (c/set-app :timestamp (.. (js/Date.) toTimeString)))

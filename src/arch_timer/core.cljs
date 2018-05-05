@@ -31,9 +31,8 @@
       {:background-color background-color
        :color color})))
 
-
 (rum/defc root < rum/reactive [app-state]
-  (let [{:keys [counter runtime readytime readycounter running config]} (rum/react app-state)
+  (let [{:keys [counter runtime readytime readycounter running config timestamp]} (rum/react app-state)
         remaining (- runtime counter)
         readyleft (- readytime readycounter)
         color (get-style remaining running)
@@ -53,7 +52,7 @@
      [:audio#beep {:controls true
                    :style {:display "none"}}
       [:source {:src "audio/beep.ogg"}]]
-     [:h4 (.. (js/Date.) toTimeString)]
+     [:h4 timestamp]
 
      ; Modal Config
      [:div#config {:hidden (not config)}

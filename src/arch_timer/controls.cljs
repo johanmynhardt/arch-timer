@@ -18,7 +18,7 @@
     (if-not timer
       (do
         (println (str "Starting timer with config: " @c/app-state))
-        (swap! c/app-state assoc-in [:timer] (js/setInterval events/on-timer 1000))))))
+        (c/set-app :timer (js/setInterval events/on-timer 1000))))))
 
 (defn stop
   "Stop the timer and reset states."
@@ -27,5 +27,5 @@
     (if timer (do
                 (println "Stopping timer.")
                 (js/clearInterval timer)
-                (swap! c/app-state assoc-in [:timer] nil)
-                (swap! c/app-state assoc-in [:running] false)))))
+                (c/set-app :timer nil)
+                (c/set-app :running false)))))

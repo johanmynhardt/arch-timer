@@ -1,6 +1,8 @@
-(ns arch-timer.config)
+(ns arch-timer.config
+  (:require [arch-timer.events :as events]))
 
 (def default-config (atom {:timer nil
+                           :heartbeat (js/setInterval events/on-heartbeat 1000)
                            :readytime 5
                            :readycounter 0
                            :runtime 25
@@ -18,3 +20,6 @@
 
 (defn set [key value]
   (swap! default-config assoc-in [key] value))
+
+(defn set-app [key value]
+  (swap! app-state assoc-in [key] value))
