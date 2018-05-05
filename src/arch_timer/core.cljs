@@ -38,17 +38,18 @@
         readyleft (- readytime readycounter)
         color (get-style remaining running)
         _ (if (<= remaining 0) (do (if running (sound/beep-repeat 3)) (controls/stop)))
+        buttons [{:value "Start" :fn controls/start}
+                 {:value "Stop" :fn controls/stop}
+                 {:value "Reset" :fn controls/reset}
+                 {:value "Configure" :fn configure!}
+                 {:value "Beep!" :fn sound/beep!}]
+        hydrate-button (fn [btn] [:button {:on-click (:fn btn) :key (:value btn)} (:value btn)])
         ]
     [:div
      [:div
-      [:button {:on-click controls/start} "start"]
-      [:button {:on-click controls/stop} "stop"]
-      [:button {:on-click controls/reset} "reset"]
-      [:button {:on-click configure!} "configure"]
-      [:button {:on-click sound/beep!} "beep!"]]
+      (map hydrate-button buttons)]
      [:div.vt {:style color}
-      [:div {:hidden (not running)} (str remaining)]
-      [:div {:hidden running} (str readyleft)]]
+      [:div (if running remaining readyleft)]]
      [:audio#beep {:controls true
                    :style {:display "none"}}
       [:source {:src "audio/beep.ogg"}]]
