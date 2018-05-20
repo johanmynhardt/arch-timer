@@ -1,8 +1,13 @@
-(ns arch-timer.config
-  (:require [arch-timer.events :as events]))
+(ns arch-timer.config)
+
+(declare app-state)
+
+(defn- on-heartbeat
+  []
+  (swap! app-state assoc-in [:timestamp] (.. (js/Date.) toTimeString)))
 
 (def default-config (atom {:timer nil
-                           :heartbeat (js/setInterval events/on-heartbeat 1000)
+                           :heartbeat (js/setInterval on-heartbeat 1000)
                            :readytime 5
                            :readycounter 0
                            :runtime 25
@@ -16,10 +21,18 @@
 (defn reset
   "Reset the app-state to the initial state, ready for the next run."
   []
-  (reset! app-state (merge @app-state @default-config {:timer (:timer @app-state)})))
+  (reset! app-state
+    (merge
+      @app-state
+      @default-config
+      (select-keys @app-state [:timer :config :runtime :readytime]))))
 
-(defn set [key value]
-  (swap! default-config assoc-in [key] value))
+(defn set-app
+  [key value]
+  (let [ks (if (coll? key) key [key])]
+    (swap! app-state assoc-in ks value)))
 
-(defn set-app [key value]
-  (swap! app-state assoc-in [key] value))
+(defn update-app
+  [key fn]
+  (let [ks (if (coll? key) key [key])]
+    (swap! app-state update-in ks fn)))

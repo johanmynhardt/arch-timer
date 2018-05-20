@@ -1,7 +1,7 @@
 (ns arch-timer.controls
   (:require [arch-timer.config :as c]
             [arch-timer.sound :as sound]
-            [arch-timer.events :as events]))
+            [arch-timer.timer :as timer]))
 
 (defn reset
   "Reset the app-state to the initial state, ready for the next run."
@@ -18,7 +18,7 @@
     (if-not timer
       (do
         (println (str "Starting timer with config: " @c/app-state))
-        (c/set-app :timer (js/setInterval events/on-timer 1000))))))
+        (c/set-app :timer (js/setInterval timer/on-timer 1000))))))
 
 (defn stop
   "Stop the timer and reset states."
