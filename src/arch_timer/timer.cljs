@@ -2,24 +2,35 @@
   (:require [arch-timer.sound :as sound]
             [arch-timer.config :as c]))
 
-(defn stop-check []
-  (if (<= remaining 0) (do (if running (sound/beep-repeat 3)) (nil #_controls/stop))))
+(defn start-check
+  [{:keys [running] :as cur-state} start-fn]
+  #_(let [a 'a]
+    (if-not running (start-fn))))
 
-(defn on-timer []
-  (let [{:keys [readycounter readytime]} @c/app-state]
+(defn stop-check
+  [{:keys [runtime counter running] :as cur-state} stop-fn]
+  (let [remaining (- runtime counter)]
+    (when (<= remaining 0)
+      (if running (sound/stop))
+      (stop-fn))))
+
+(defn on-timer
+  []
+  (let [{:keys [counter runtime readytime readycounter running config timestamp] :as cur-state} @c/app-state]
     (cond
       (= readycounter readytime)
       (let [{:keys [running]} @c/app-state]
         (if-not running
           (do
-            (sound/beep-repeat 1)
+            (sound/start)
             (c/set-app :running true)))
         (if running (c/update-app :counter inc)))
 
       :else
       (c/update-app :readycounter inc))))
 
-(defn get-style [remaining running]
+(defn get-style
+  [remaining running]
   (cond
     (not running) {:background-color "red" :color "white"}
 

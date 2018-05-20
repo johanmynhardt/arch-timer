@@ -27,3 +27,14 @@
       (beep!)
       (js/setTimeout #(beep-repeat (dec times)) 1000))))
 
+(defn reset
+  []
+  (beep-repeat 1))
+
+(defn start
+  []
+  (beep-repeat 2))
+
+(defn stop
+  []
+  (beep-repeat 3))

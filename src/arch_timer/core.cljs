@@ -16,7 +16,7 @@
   (controls/reset))
 
 (rum/defc root < rum/reactive [app-state]
-  (let [{:keys [counter runtime readytime readycounter running config timestamp]} (rum/react app-state)
+  (let [{:keys [counter runtime readytime readycounter running config timestamp] :as cur-state} (rum/react app-state)
         remaining (- runtime counter)
         readyleft (- readytime readycounter)
         color (timer/get-style remaining running)
@@ -27,47 +27,39 @@
                  {:value "Beep!" :fn sound/beep!}]
         hydrate-button (fn [{:keys [fn value] :as btn}]
                          [:button {:on-click fn :key value} value])
-        ]
-    (if (<= remaining 0) (do (if running (sound/beep-repeat 3)) (controls/stop)))
+        set-app-on-value-change (fn [key] #(c/set-app key (-> (.. % -target -value) js/parseInt)))
+        vt-text (if running remaining readyleft)
+        modal-hidden (not config)]
+
+    ;; NON-VISUAL Changes
+    (timer/start-check cur-state controls/start)
+    (timer/stop-check cur-state controls/stop)
 
     [:div
      [:div
       (map hydrate-button buttons)]
      [:div.vt {:style color}
-      [:div (if running remaining readyleft)]]
+      [:div vt-text]]
      [:audio#beep {:controls true
                    :style {:display "none"}}
       [:source {:src "audio/beep.ogg"}]]
      [:h4 timestamp]
 
      ; Modal Config
-     [:div#config {:hidden (not config)}
+     [:div#config {:hidden modal-hidden}
       [:dl
        [:dt [:label "ready time"]]
        [:dd [:input {:type "number"
                      :value readytime
-                     :on-change #(c/set-app
-                                   :readytime
-                                   (->
-                                     (.. % -target -value)
-                                     js/parseInt))}]]
+                     :on-change (set-app-on-value-change :readytime)}]]
 
        [:dt [:label "runtime"]]
        [:dd [:input {:type "number"
                      :value runtime
-                     :on-change #(c/set-app
-                                   :runtime
-                                   (->
-                                     (.. % -target -value)
-                                     js/parseInt))}]]]
-
+                     :on-change (set-app-on-value-change :runtime)}]]]
 
       [:div]
-      [:button {:on-click (fn [_]
-                            (c/set-app :config false)
-                            ;(controls/reset)
-                            )}
-       "OK"]]]
+      [:button {:on-click #(c/set-app :config false)} "OK"]]]
     ))
 
 (defn mountroot! [el-id]

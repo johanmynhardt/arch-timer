@@ -12,7 +12,7 @@
   "Start the timer."
   []
   (reset)
-  (sound/beep-repeat 2)
+  (sound/start)
   (let [timer (:timer @c/app-state)
         _ (println "timer: " timer)]
     (if-not timer
